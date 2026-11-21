@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Research Gap Finder</title>
+<style>
+:root { --bg: #f7f6f2; --card: #fff; --ink: #16161a; --mute: #62625c; --line: #e0dfd7; --acc: #4338ca; }
+[data-theme=dark] { --bg: #0e0e10; --card: #17171a; --ink: #ecebe6; --mute: #a09f98; --line: #2b2b2f; --acc: #a5b4fc; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 system-ui, sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 24px; border-bottom: 1px solid var(--line); }
+header b { flex: 1; font: 600 20px Georgia, serif; }
+main { max-width: 960px; margin: 0 auto; padding: 24px; }
+button, input, textarea { font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--acc); }
+textarea, input { width: 100%; box-sizing: border-box; }
+.tab.on { background: var(--acc); color: var(--bg); }
+.view { display: none; }
+.view.on { display: block; }
+.hero { text-align: center; padding: 60px 0 30px; }
+.hero h1 { font: 600 clamp(32px, 6vw, 56px) Georgia, serif; margin: 0 0 12px; }
+.hero h1 em { color: var(--acc); }
+.hero p { max-width: 560px; margin: 0 auto 20px; color: var(--mute); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.card:hover { border-color: var(--acc); }
+.icons { float: right; color: var(--acc); letter-spacing: 6px; }
+.meta { color: var(--mute); font-size: 12px; }
+.gap { border-left: 3px solid var(--acc); padding-left: 10px; margin: 8px 0; }
+#drop { margin-top: 14px; padding: 16px; text-align: center; border: 2px dashed var(--line); border-radius: 12px; }
+.chip { display: inline-block; margin: 2px; padding: 0 10px; border: 1px solid var(--ink); border-radius: 99px; }
+.found { background: var(--ink); color: var(--bg); }
+.missing { border-style: dashed; }
+.bin { text-decoration: line-through; color: var(--mute); }
+dialog { width: min(1100px, 96vw); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+iframe { width: 100%; height: 60vh; border: 1px solid var(--line); border-radius: 8px; }
+@media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <b>Research Gap Finder</b>
+  <button class="tab on" data-v="home">Home</button>
+  <button class="tab" data-v="library">Library</button>
+  <button class="tab" data-v="projects">My Projects</button>
+  <button class="tab" data-v="add">Add</button>
+  <button class="tab" data-v="finder">Gap Finder</button>
+  <button class="tab" data-v="howto">How to use</button>
+  <input id="q" placeholder="Search" style="width:140px">
+  <button id="theme">Dark</button>
+</header>
+<main>
+  <section class="view on" id="home">
+    <div class="hero">
+      <h1>A step closer to <em>perfection</em></h1>
+      <p>Every research paper admits what it could not do. This site collects those limitations in one place,
+         so you can spot a gap that nobody has filled yet and turn it into your own project.</p>
+      <button class="tab" data-v="library" style="background:var(--acc);color:var(--bg)">Browse the library</button>
+    </div>
+  </section>
+  <section class="view" id="library">
+    <label><input type="checkbox" id="only" style="width:auto"> Saved only</label>
+    <div class="grid" id="papers"></div>
+    <div id="drop">Drag a card here to save or unsave it</div>
+  </section>
+  <section class="view" id="projects">
+    <h2>My Projects</h2>
+    <div class="grid" id="mine"></div>
+  </section>
+  <section class="view" id="add">
+    <h2>Add my own paper or project</h2>
+    <form class="card" id="form">
+      <select id="kind"><option value="paper">Research paper</option><option value="project">My project</option></select>
+      <input id="title" placeholder="Title" required minlength="3">
+      <input id="topic" placeholder="Topic, e.g. Space" required>
+      <input id="year" type="number" value="2026" min="1900" max="2100">
+      <textarea id="about" placeholder="Short description"></textarea>
+      <textarea id="lims" placeholder="Limitations, one per line"></textarea>
+      <input id="link" placeholder="Link, e.g. https://my-site.netlify.app">
+      <label class="meta">PDF file (optional)</label>
+      <input id="pdffile" type="file" accept=".pdf">
+      <p><button style="background:var(--acc);color:var(--bg)">Add to library</button></p>
+    </form>
+  </section>
+ <section class="view" id="finder">
+    <h2>Is my idea new?</h2>
+    <input id="idea" placeholder="Describe your research idea">
+    <p><button id="go">Find gaps</button></p>
+    <div class="card" id="result">Your result appears here.</div>
+  </section>]
+  <section class="view" id="howto">
+    <h2>How to use</h2>
+    <ol>
+      <li><b>Library:</b> click a paper to see its limitations. Each limitation is a possible research gap.</li>
+      <li><b>Save:</b> drag a paper onto the dashed box to save it. Drop it again to remove it.</li>
+      <li><b>Notes:</b> inside a paper, write your own idea. It is stored in your browser.</li>
+      <li><b>Add:</b> add your own paper or project with its PDF and link, then open it.</li>
+      <li><b>Gap Finder:</b> type your idea. The score is the share of your keywords found in no paper.
+          Open "the working" to see every step.</li>
+    </ol>
+    <p class="meta">The score is plain keyword matching, so always check a gap against real papers.</p>
+  </section>
+</main>
+<dialog id="dlg"></dialog>
+<script type="application/json" id="seed">
+[
+{"id":"a","kind":"paper","title":"Attention Is All You Need","year":2017,"topic":"NLP","file":"",
+ "about":"Introduces the Transformer, a model built only on attention.",
+ "lim":["Self-attention compares every word with every other word, so cost grows with the square of the length.",
+        "The decoder writes one token at a time, so generation is not fully parallel."]},
+{"id":"b","kind":"paper","title":"BERT","year":2018,"topic":"NLP","file":"",
+ "about":"Pre-trains a deep bidirectional Transformer for language understanding.",
+ "lim":["The [MASK] token appears in pre-training but never in fine-tuning.","Training needs a lot of compute."]},
+{"id":"c","kind":"paper","title":"Deep Residual Learning","year":2015,"topic":"Vision","file":"",
+ "about":"Skip connections let very deep networks train well.",
+ "lim":["On CIFAR-10 a 1202-layer network did worse than a 110-layer one."]},
+{"id":"d","kind":"paper","title":"Generative Adversarial Nets","year":2014,"topic":"Generative","file":"",
+ "about":"Two networks, a generator and a discriminator, train against each other.",
+ "lim":["No explicit formula for the distribution the generator learns.","Training is unstable."]},
+{"id":"p1","kind":"project","title":"Chandrasetu","year":2026,"topic":"Space","file":"",
+ "about":"Multi-modal lunar variance project.",
+ "lim":["Only tested on a few craters."]}]
+</script>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);                          // a NodeList already has forEach
+// make user-typed text safe before it goes inside innerHTML
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => "&#" + c.charCodeAt(0) + ";");
+const low = t => String(t ?? "").toLowerCase();                          // lower-case, so search ignores case
+const seed = JSON.parse($("#seed").textContent);                         // built-in JSON data
+let mine = JSON.parse(localStorage.getItem("rgf3_records") || "[]");     // items I added
+const lims = r => r.lim || (r.limitations || []).map(x => x.text);      // old and new formats
+let saved = JSON.parse(localStorage.getItem("rgf3_saved") || "[]");      // ids of saved papers
+let notes = JSON.parse(localStorage.getItem("rgf3_userdata") || "{}");   // my notes per item
+function store() {
+  localStorage.setItem("rgf3_saved", JSON.stringify(saved));
+  localStorage.setItem("rgf3_userdata", JSON.stringify(notes));
+  localStorage.setItem("rgf3_records", JSON.stringify(mine));
+}
+// PDFs are too big for localStorage, so they live in IndexedDB
+const db = () => new Promise(ok => {
+  const r = indexedDB.open("rgf_files", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("files", { keyPath: "id" });
+  r.onsuccess = () => ok(r.result);
+});
+const pdfPut = (id, blob) => db().then(d => d.transaction("files", "readwrite").objectStore("files").put({ id, blob }));
+const pdfGet = id => db().then(d => new Promise(ok => {
+  const q = d.transaction("files").objectStore("files").get(id);
+  q.onsuccess = () => ok(q.result && URL.createObjectURL(q.result.blob));
+}));
+// only allow web links, and add https:// when it is missing
+function fixLink(l) {
+  l = l.trim();
+  if (!l) return "";
+  if (!/^https?:\/\//i.test(l)) l = "https://" + l;
+  return /^https?:\/\/[^\s]+\.[^\s]+/i.test(l) ? l : "";
+}
+function show(view) {
+  $$(".view").forEach(v => v.classList.toggle("on", v.id == view));
+  $$("header .tab").forEach(b => b.classList.toggle("on", b.dataset.v == view));
+}
+$$(".tab").forEach(b => b.onclick = () => show(b.dataset.v));
+$("#theme").onclick = () => {
+  const dark = document.documentElement.dataset.theme == "dark";
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  localStorage.setItem("rgf_theme", dark ? "light" : "dark");
+};
+document.documentElement.dataset.theme = localStorage.getItem("rgf_theme") || "light";
+// the single master list: built-in papers (seed) first, then the ones I added (mine)
+const master = () => [...seed, ...mine];
+// does this paper match the search text?  (text and query are both lower-case)
+const matches = (p, q) =>
+  low(p.title).includes(q) || low(p.topic).includes(q) || lims(p).some(l => low(l).includes(q));
+function draw(kind, box) {
+  const q = low($("#q").value.trim());                                    
+  const onlySaved = $("#only").checked && kind == "paper";                
+  const list = master()
+    .filter(p => p.kind == kind)
+    .filter(p => matches(p, q))
+    .filter(p => !onlySaved || saved.includes(p.id));
+  box.innerHTML = "";
+  list.forEach(p => {
+    const n = lims(p).length;
+    const c = document.createElement("div");
+    c.className = "card";
+    c.draggable = true;
+    c.innerHTML = `<div class="meta">${esc(p.topic)} | ${esc(p.year)}</div>
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.about)}</p>
+      <small>${n} limitation${n == 1 ? "" : "s"}</small>
+      <span class="icons">${saved.includes(p.id) ? "<span title='Saved'>&#9733;</span>" : ""}
+        ${p.file || p.pdf ? "<span title='PDF saved'>&#128206;</span>" : ""}</span>`;
+    c.onclick = () => openItem(p);
+    c.ondragstart = e => e.dataTransfer.setData("text", p.id);
+    box.append(c);
+  });}
+function render() {
+  draw("paper", $("#papers"));
+  draw("project", $("#mine"));
+}
+// listen to every keystroke in the search box, then redraw the lists
+$("#q").addEventListener("input", () => {
+  const here = document.querySelector(".view.on").id;
+  if (here != "library" && here != "projects") show("library");          
+  render();
+});
+$("#only").addEventListener("change", render);
+const drop = $("#drop");
+drop.ondragover = e => e.preventDefault();
+drop.ondrop = e => {
+  e.preventDefault();
+  const id = e.dataTransfer.getData("text");
+  saved = saved.includes(id) ? saved.filter(x => x != id) : [...saved, id];
+  store();
+  render();
+};
+function openItem(p) {
+  const my = notes[p.id] || [];
+  $("#dlg").innerHTML = `
+    <button onclick="dlg.close()" style="float:right">Close</button>
+    <h2>${esc(p.title)}</h2>
+    <div class="split">
+      <div>
+        <p>${esc(p.about)}</p>
+        ${p.link ? `<p><a href="${esc(p.link)}" target="_blank" rel="noopener">Open link</a></p>` : ""}
+        ${p.own ? `<p><button id="del">Delete this</button></p>` : ""}
+        <h3>Limitations: possible research gaps</h3>
+        ${lims(p).map(t => `<div class="gap">${esc(t)}</div>`).join("")}
+        <h3>My notes</h3>
+        ${my.map(n => `<div class="gap">${esc(n)}</div>`).join("")}
+        <textarea id="note" placeholder="My own idea"></textarea>
+        <p><button id="sn">Save note</button></p>
+      </div>
+      <div>
+        <h3>PDF</h3>
+        <p id="nopdf" class="meta">${p.file || p.pdf ? "Loading..." : "No PDF added for this one."}</p>
+        <iframe id="pdf" src="${p.file || ""}" ${p.file ? "" : "hidden"}></iframe>
+      </div>
+    </div>`;
+  $("#sn").onclick = () => {
+    const t = $("#note").value.trim();
+    if (t.length < 3) return;
+    notes[p.id] = [...my, t + " (" + new Date().toLocaleDateString() + ")"];
+    store();
+    openItem(p);};
+  if (p.pdf) pdfGet(p.id).then(url => {      // my uploaded PDF, read back from IndexedDB
+    if (!url) return;
+    $("#pdf").src = url;
+    $("#pdf").hidden = false;
+  });
+  if (p.file || p.pdf) setTimeout(() => $("#nopdf").hidden = true, 600);
+  if (p.own) $("#del").onclick = () => {
+    mine = mine.filter(x => x.id != p.id);
+    store();
+    $("#dlg").close();
+    render(); };
+  $("#dlg").showModal();}
+const STOP = "the a an and or of in on to is are for with how what can be by it as at we use using".split(" ");
+const words = t => t.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+
+
+const same = (a, b) => a == b || (a.length > 3 && b.length > 3 && (a.startsWith(b) || b.startsWith(a)));
+$("#go").onclick = () => {
+  const all = words($("#idea").value);
+  const bin = all.filter(w => STOP.includes(w));                          // step 1: throw away
+  const keys = [...new Set(all.filter(w => !STOP.includes(w)))];
+  if (!keys.length) return;
+  const corpus = master().flatMap(p => words(p.title + " " + lims(p).join(" ")));
+  const found = keys.filter(k => corpus.some(w => same(k, w)));           // step 2: look up
+  const missing = keys.filter(k => !found.includes(k));
+  const score = Math.round(missing.length / keys.length * 100);           // step 3: score
+  const chip = (w, cls) => `<span class="chip ${cls}">${w}</span>`;
+  $("#result").innerHTML = `<h1>${score}% unexplored</h1>
+    <p>1. Thrown away: ${bin.map(w => chip(w, "bin")).join("")}</p>
+    <p>2. Found in library (filled) / not found (dashed):
+      ${keys.map(k => chip(k, found.includes(k) ? "found" : "missing")).join("")}</p>
+    <p>3. ${missing.length} missing / ${keys.length} keywords x 100 = ${score}%</p>
+    <small class="meta">Keyword matching only: check every gap in real papers.</small>`;};
+$("#form").onsubmit = async e => 
+{
+  e.preventDefault();
+  const id = "u" + Date.now();
+  const file = $("#pdffile").files[0];
+  if (file) await pdfPut(id, file);
+  mine.push({
+    id, own: true, kind: $("#kind").value, title: $("#title").value.trim(), topic: $("#topic").value.trim(),
+    year: $("#year").value, about: $("#about").value.trim(), link: fixLink($("#link").value), pdf: !!file,
+    lim: $("#lims").value.split("\n").map(l => l.trim()).filter(Boolean) });
+  store();
+  e.target.reset();
+  render();
+  show(mine[mine.length - 1].kind == "project" ? "projects" : "library");};
+render();
+</script>
+</body>
+</html>
